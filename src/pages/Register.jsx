@@ -19,7 +19,43 @@ export default function Register() {
 
   const submit = async (e) => {
     e.preventDefault();
-    const res = await dispatch(registerThunk(form));
+
+    // 1) boş sahələr
+    if (
+      !form.email?.trim() ||
+      !form.firstname?.trim() ||
+      !form.lastname?.trim() ||
+      !form.username?.trim() ||
+      !form.password ||
+      !form.confirmPassword
+    ) {
+      alert("Bütün sahələri doldurun");
+      return;
+    }
+
+    // 2) şifrə min 6
+    if (form.password.length < 6) {
+      alert("Şifrə minimum 6 simvol olmalıdır");
+      return;
+    }
+
+    // 3) password match (səndə @PasswordMatches var)
+    if (form.password !== form.confirmPassword) {
+      alert("Password və Confirm Password eyni olmalıdır");
+      return;
+    }
+
+    // 4) payload (backend-in gözlədiyi adlarla!)
+    const payload = {
+      email: form.email.trim(),
+      firstname: form.firstname.trim(),
+      lastname: form.lastname.trim(),
+      username: form.username.trim(),
+      password: form.password,
+      confirmPassword: form.confirmPassword,
+    };
+
+    const res = await dispatch(registerThunk(payload));
     if (res.meta.requestStatus === "fulfilled") navigate("/login");
   };
 

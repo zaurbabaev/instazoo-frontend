@@ -3,7 +3,7 @@ import { store } from "../app/store";
 
 const api = axios.create({
   baseURL: import.meta.env.VITE_API_BASE_URL || "http://localhost:8080",
-  withCredentials: true,
+  // withCredentials: true,
 });
 
 api.interceptors.request.use((config) => {
