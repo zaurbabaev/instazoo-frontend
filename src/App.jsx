@@ -1,7 +1,15 @@
+import { useEffect } from "react";
+import { useSelector } from "react-redux";
+import AppRoutes from "./routes/AppRoutes";
+
 export default function App() {
-  return (
-    <div className="flex items-center justify-center h-screen text-3xl text-white bg-blue-500">
-      Tailwind işləyir 🔥
-    </div>
-  );
+  const mode = useSelector((s) => s.theme.mode);
+
+  useEffect(() => {
+    const root = document.documentElement;
+    if (mode === "dark") root.classList.add("dark");
+    else root.classList.remove("dark");
+  }, [mode]);
+
+  return <AppRoutes />;
 }
