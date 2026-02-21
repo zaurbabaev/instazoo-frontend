@@ -8,6 +8,7 @@ import Feed from "../pages/Feed";
 import Profile from "../pages/Profile";
 import CreatePost from "../pages/CreatePost";
 import Settings from "../pages/Settings";
+import PostDetail from "../pages/PostDetail";
 import NotFound from "../pages/NotFound";
 
 export default function AppRoutes() {
@@ -27,6 +28,7 @@ export default function AppRoutes() {
         <Route path="profile/:userId" element={<Profile />} />
         <Route path="create" element={<CreatePost />} />
         <Route path="settings" element={<Settings />} />
+        <Route path="post/:id" element={<PostDetail />} />
       </Route>
 
       <Route path="*" element={<NotFound />} />
