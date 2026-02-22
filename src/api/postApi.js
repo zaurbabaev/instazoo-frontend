@@ -6,3 +6,6 @@ export const createPost = (payload) => api.post("/api/posts/create", payload);
 export const likePost = (postId, username) =>
   api.post(`/api/posts/${postId}/${username}/like`);
 export const deletePost = (postId) => api.delete(`/api/posts/${postId}`);
+
+export const getPostsByUserId = (userId) =>
+  api.get(`/api/posts/user/${userId}/posts`);

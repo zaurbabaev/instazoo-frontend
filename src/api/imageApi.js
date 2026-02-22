@@ -1,5 +1,8 @@
 import api from "./axios";
 
+export const getProfileImage = () => api.get("/api/images/profileImage");
+
+// Multipart form-data
 export const uploadProfileImage = (file) => {
   const fd = new FormData();
   fd.append("file", file);
@@ -8,8 +11,7 @@ export const uploadProfileImage = (file) => {
   });
 };
 
-export const getProfileImage = () => api.get("/api/images/profileImage");
-
+export const getPostImage = (postId) => api.get(`/api/images/${postId}/image`);
 export const uploadPostImage = (postId, file) => {
   const fd = new FormData();
   fd.append("file", file);
@@ -17,5 +19,3 @@ export const uploadPostImage = (postId, file) => {
     headers: { "Content-Type": "multipart/form-data" },
   });
 };
-
-export const getPostImage = (postId) => api.get(`/api/images/${postId}/image`);

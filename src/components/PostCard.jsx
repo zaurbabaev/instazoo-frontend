@@ -37,10 +37,9 @@ export default function PostCard({ post }) {
             by{" "}
             <Link
               className="underline decoration-dotted"
-              to={`/profile/${post.username}`}>
+              to={`/profile/${post.userId}`}>
               {post.username}
             </Link>
-            <span className="underline decoration-dotted">{post.username}</span>
             {post.location ? ` • ${post.location}` : ""}
           </div>
         </div>

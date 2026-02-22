@@ -1,7 +1,7 @@
 import { useState } from "react";
 import { updateUser } from "../api/userApi";
-import { pushToast } from "../features/toast/toastSlice";
 import { useDispatch } from "react-redux";
+import { pushToast } from "../features/toast/toastSlice";
 
 export default function EditProfileModal({ user, onClose, onUpdated }) {
   const dispatch = useDispatch();
@@ -9,6 +9,7 @@ export default function EditProfileModal({ user, onClose, onUpdated }) {
   const [form, setForm] = useState({
     firstname: user?.firstname || "",
     lastname: user?.lastname || "",
+    username: user?.username || "", // ✅ vacib
     bio: user?.bio || "",
   });
 
@@ -18,10 +19,27 @@ export default function EditProfileModal({ user, onClose, onUpdated }) {
   const submit = async (e) => {
     e.preventDefault();
     setErr(null);
-    setLoading(true);
 
+    if (
+      !form.firstname.trim() ||
+      !form.lastname.trim() ||
+      !form.username.trim()
+    ) {
+      setErr("Firstname, lastname, username boş ola bilməz.");
+      return;
+    }
+
+    setLoading(true);
     try {
-      const res = await updateUser(form);
+      // ✅ backend UserDTO tələb edir
+      const payload = {
+        firstname: form.firstname.trim(),
+        lastname: form.lastname.trim(),
+        username: form.username.trim(), // ✅ göndər
+        bio: form.bio?.trim() || "",
+      };
+
+      const res = await updateUser(payload);
       onUpdated(res.data);
       dispatch(pushToast({ type: "success", message: "Profil yeniləndi ✅" }));
       onClose();
@@ -29,6 +47,7 @@ export default function EditProfileModal({ user, onClose, onUpdated }) {
       const msg =
         e2?.response?.data?.message ||
         (typeof e2?.response?.data === "string" ? e2.response.data : null) ||
+        JSON.stringify(e2?.response?.data || {}) ||
         e2.message ||
         "Update alınmadı";
       setErr(msg);
@@ -43,7 +62,9 @@ export default function EditProfileModal({ user, onClose, onUpdated }) {
       <div className="w-full max-w-md overflow-hidden bg-white border shadow-xl dark:bg-slate-900 border-slate-200 dark:border-slate-800 rounded-2xl">
         <div className="p-5 border-b border-slate-200 dark:border-slate-800">
           <div className="text-lg font-extrabold">Edit Profile</div>
-          <div className="mt-1 text-sm text-slate-500">Ad, soyad və bio</div>
+          <div className="mt-1 text-sm text-slate-500">
+            Ad, soyad, username və bio
+          </div>
         </div>
 
         <form onSubmit={submit} className="p-5 space-y-3">
@@ -56,17 +77,24 @@ export default function EditProfileModal({ user, onClose, onUpdated }) {
           <div className="grid grid-cols-1 gap-3 md:grid-cols-2">
             <input
               className="px-4 py-3 bg-transparent border rounded-xl border-slate-200 dark:border-slate-800"
-              placeholder="Firstname"
+              placeholder="Firstname *"
               value={form.firstname}
               onChange={(e) => setForm({ ...form, firstname: e.target.value })}
             />
             <input
               className="px-4 py-3 bg-transparent border rounded-xl border-slate-200 dark:border-slate-800"
-              placeholder="Lastname"
+              placeholder="Lastname *"
               value={form.lastname}
               onChange={(e) => setForm({ ...form, lastname: e.target.value })}
             />
           </div>
+
+          <input
+            className="w-full px-4 py-3 bg-transparent border rounded-xl border-slate-200 dark:border-slate-800"
+            placeholder="Username *"
+            value={form.username}
+            onChange={(e) => setForm({ ...form, username: e.target.value })}
+          />
 
           <textarea
             rows={4}
