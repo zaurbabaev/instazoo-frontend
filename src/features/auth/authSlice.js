@@ -1,5 +1,5 @@
 import { createAsyncThunk, createSlice } from "@reduxjs/toolkit";
-import { signin, signup } from "../../api/authApi";
+import { signin, signup, logoutApi } from "../../api/authApi";
 import { getCurrentUser } from "../../api/userApi";
 
 export const registerThunk = createAsyncThunk(
@@ -43,6 +43,15 @@ export const meThunk = createAsyncThunk(
   },
 );
 
+// logout backend: refresh cookie sil
+export const logoutThunk = createAsyncThunk("auth/logout", async () => {
+  try {
+    await logoutApi(); // /api/auth/logout
+  } catch {
+    // even if fails, we clear state
+  }
+});
+
 const authSlice = createSlice({
   name: "auth",
   initialState: {
@@ -51,14 +60,26 @@ const authSlice = createSlice({
     user: null,
     loading: false,
     error: null,
+    loadingMe: false,
   },
   reducers: {
+    // refresh interceptor burdan istifadə edəcək
+    setToken: (state, action) => {
+      const raw = action.payload;
+      const token = raw?.startsWith("Bearer ") ? raw : `Bearer ${raw}`;
+      state.token = token;
+      state.isAuthenticated = !!token;
+    },
+
     logout: (state) => {
       state.isAuthenticated = false;
       state.token = null;
       state.user = null;
       state.error = null;
+      state.loading = false;
+      state.loadingMe = false;
     },
+
     clearAuthError: (state) => {
       state.error = null;
     },
@@ -78,15 +99,29 @@ const authSlice = createSlice({
       s.error = a.payload;
     });
 
+    b.addCase(meThunk.pending, (s) => {
+      s.loadingMe = true;
+    });
     b.addCase(meThunk.fulfilled, (s, a) => {
+      s.loadingMe = false;
       s.user = a.payload;
     });
     b.addCase(meThunk.rejected, (s) => {
-      // me alınmasa, token var olsa belə user null qalacaq
+      s.loadingMe = false;
       s.user = null;
+    });
+
+    // logoutThunk: state təmizlə
+    b.addCase(logoutThunk.fulfilled, (s) => {
+      s.isAuthenticated = false;
+      s.token = null;
+      s.user = null;
+      s.error = null;
+      s.loading = false;
+      s.loadingMe = false;
     });
   },
 });
 
-export const { logout, clearAuthError } = authSlice.actions;
+export const { logout, clearAuthError, setToken } = authSlice.actions;
 export default authSlice.reducer;
