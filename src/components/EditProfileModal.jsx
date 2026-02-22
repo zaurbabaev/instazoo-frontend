@@ -1,125 +1,146 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
+import Modal from "./Modal";
+
 import { updateUser } from "../api/userApi";
-import { useDispatch } from "react-redux";
-import { pushToast } from "../features/toast/toastSlice";
 
-export default function EditProfileModal({ user, onClose, onUpdated }) {
-  const dispatch = useDispatch();
+import Button from "./ui/Button";
+import Input from "./ui/Input";
+import { Card, CardContent } from "./ui/Card";
 
+export default function EditProfileModal({ open, onClose, user, onSaved }) {
   const [form, setForm] = useState({
-    firstname: user?.firstname || "",
-    lastname: user?.lastname || "",
-    username: user?.username || "", // ✅ vacib
-    bio: user?.bio || "",
+    firstname: "",
+    lastname: "",
+    username: "",
+    bio: "",
   });
 
-  const [loading, setLoading] = useState(false);
+  const [saving, setSaving] = useState(false);
   const [err, setErr] = useState(null);
+
+  useEffect(() => {
+    if (!open) return;
+    setErr(null);
+    setForm({
+      firstname: user?.firstname || "",
+      lastname: user?.lastname || "",
+      username: user?.username || "",
+      bio: user?.bio || "",
+    });
+  }, [open, user]);
 
   const submit = async (e) => {
     e.preventDefault();
     setErr(null);
 
-    if (
-      !form.firstname.trim() ||
-      !form.lastname.trim() ||
-      !form.username.trim()
-    ) {
-      setErr("Firstname, lastname, username boş ola bilməz.");
-      return;
-    }
+    if (!form.firstname.trim()) return setErr("Firstname boş ola bilməz.");
+    if (!form.lastname.trim()) return setErr("Lastname boş ola bilməz.");
 
-    setLoading(true);
+    setSaving(true);
     try {
-      // ✅ backend UserDTO tələb edir
+      // ⚠️ Backend username update icazə vermirsə, username-i göndərmə:
       const payload = {
         firstname: form.firstname.trim(),
         lastname: form.lastname.trim(),
-        username: form.username.trim(), // ✅ göndər
-        bio: form.bio?.trim() || "",
+        bio: form.bio.trim(),
+        username: form.username.trim(),
       };
 
       const res = await updateUser(payload);
-      onUpdated(res.data);
-      dispatch(pushToast({ type: "success", message: "Profil yeniləndi ✅" }));
-      onClose();
+
+      onSaved?.(res.data); // parent refresh üçün
+      onClose?.();
     } catch (e2) {
       const msg =
         e2?.response?.data?.message ||
         (typeof e2?.response?.data === "string" ? e2.response.data : null) ||
-        JSON.stringify(e2?.response?.data || {}) ||
         e2.message ||
-        "Update alınmadı";
+        "Yadda saxlanmadı";
       setErr(msg);
-      dispatch(pushToast({ type: "error", message: msg }));
     } finally {
-      setLoading(false);
+      setSaving(false);
     }
   };
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/40">
-      <div className="w-full max-w-md overflow-hidden bg-white border shadow-xl dark:bg-slate-900 border-slate-200 dark:border-slate-800 rounded-2xl">
-        <div className="p-5 border-b border-slate-200 dark:border-slate-800">
-          <div className="text-lg font-extrabold">Edit Profile</div>
-          <div className="mt-1 text-sm text-slate-500">
-            Ad, soyad, username və bio
-          </div>
-        </div>
-
-        <form onSubmit={submit} className="p-5 space-y-3">
+    <Modal open={open} onClose={onClose} title="Edit Profile">
+      <Card>
+        <CardContent>
           {err && (
-            <div className="px-3 py-2 text-sm border rounded-xl border-rose-200 bg-rose-50 text-rose-700">
+            <div className="px-3 py-2 mb-3 text-sm border rounded-xl border-rose-200 bg-rose-50 text-rose-700">
               {err}
             </div>
           )}
 
-          <div className="grid grid-cols-1 gap-3 md:grid-cols-2">
-            <input
-              className="px-4 py-3 bg-transparent border rounded-xl border-slate-200 dark:border-slate-800"
-              placeholder="Firstname *"
-              value={form.firstname}
-              onChange={(e) => setForm({ ...form, firstname: e.target.value })}
-            />
-            <input
-              className="px-4 py-3 bg-transparent border rounded-xl border-slate-200 dark:border-slate-800"
-              placeholder="Lastname *"
-              value={form.lastname}
-              onChange={(e) => setForm({ ...form, lastname: e.target.value })}
-            />
-          </div>
+          <form onSubmit={submit} className="space-y-3">
+            <div className="grid grid-cols-1 gap-3 md:grid-cols-2">
+              <div>
+                <div className="mb-1 text-xs font-semibold text-slate-500">
+                  Firstname
+                </div>
+                <Input
+                  value={form.firstname}
+                  onChange={(e) =>
+                    setForm((s) => ({ ...s, firstname: e.target.value }))
+                  }
+                  placeholder="Firstname"
+                />
+              </div>
 
-          <input
-            className="w-full px-4 py-3 bg-transparent border rounded-xl border-slate-200 dark:border-slate-800"
-            placeholder="Username *"
-            value={form.username}
-            onChange={(e) => setForm({ ...form, username: e.target.value })}
-          />
+              <div>
+                <div className="mb-1 text-xs font-semibold text-slate-500">
+                  Lastname
+                </div>
+                <Input
+                  value={form.lastname}
+                  onChange={(e) =>
+                    setForm((s) => ({ ...s, lastname: e.target.value }))
+                  }
+                  placeholder="Lastname"
+                />
+              </div>
+            </div>
 
-          <textarea
-            rows={4}
-            className="w-full px-4 py-3 bg-transparent border rounded-xl border-slate-200 dark:border-slate-800"
-            placeholder="Bio"
-            value={form.bio}
-            onChange={(e) => setForm({ ...form, bio: e.target.value })}
-          />
+            <div>
+              <div className="mb-1 text-xs font-semibold text-slate-500">
+                Username (read-only)
+              </div>
+              <Input value={form.username} disabled />
+              <div className="mt-1 text-xs text-slate-500">
+                Username dəyişmək istəsən, ayrıca endpoint lazımdır.
+              </div>
+            </div>
 
-          <div className="flex items-center justify-end gap-2 pt-2">
-            <button
-              type="button"
-              onClick={onClose}
-              className="px-4 py-3 text-sm font-semibold border rounded-xl border-slate-200 dark:border-slate-800 hover:bg-slate-50 dark:hover:bg-slate-800/40">
-              Cancel
-            </button>
+            <div>
+              <div className="mb-1 text-xs font-semibold text-slate-500">
+                Bio
+              </div>
+              <textarea
+                rows={4}
+                className="w-full px-4 py-3 text-sm bg-transparent border rounded-xl border-slate-200 dark:border-slate-800 focus:outline-none focus:ring-2 focus:ring-slate-300 dark:focus:ring-slate-700"
+                value={form.bio}
+                onChange={(e) =>
+                  setForm((s) => ({ ...s, bio: e.target.value }))
+                }
+                placeholder="Write something about you..."
+              />
+            </div>
 
-            <button
-              disabled={loading}
-              className="px-5 py-3 text-sm font-semibold text-white rounded-xl bg-slate-900 dark:bg-slate-100 dark:text-slate-900 hover:opacity-90 disabled:opacity-50">
-              {loading ? "Saving..." : "Save"}
-            </button>
-          </div>
-        </form>
-      </div>
-    </div>
+            <div className="flex justify-end gap-2 pt-2">
+              <Button
+                type="button"
+                variant="outline"
+                onClick={onClose}
+                disabled={saving}>
+                Cancel
+              </Button>
+              <Button type="submit" disabled={saving}>
+                {saving ? "Saving..." : "Save"}
+              </Button>
+            </div>
+          </form>
+        </CardContent>
+      </Card>
+    </Modal>
   );
 }

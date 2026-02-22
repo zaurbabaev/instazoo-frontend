@@ -3,6 +3,7 @@ import { useDispatch, useSelector } from "react-redux";
 import { likePostThunk, deletePostThunk } from "../features/posts/postsSlice";
 import PostImage from "./PostImage";
 import { pushToast } from "../features/toast/toastSlice";
+import Button from "./ui/Button";
 
 export default function PostCard({ post }) {
   const dispatch = useDispatch();
@@ -64,15 +65,9 @@ export default function PostCard({ post }) {
       )}
 
       <div className="flex items-center justify-between mt-4">
-        <button
-          onClick={handleLike}
-          className={`px-4 py-2 text-sm font-medium border rounded-xl transition ${
-            liked ?
-              "bg-rose-50 border-rose-200 text-rose-700 dark:bg-rose-500/10 dark:border-rose-400/30"
-            : "border-slate-200 dark:border-slate-800 hover:bg-slate-50 dark:hover:bg-slate-800/50"
-          }`}>
-          {liked ? "❤️ Liked" : "🤍 Like"} ({post.likes ?? 0})
-        </button>
+        <Button variant={liked ? "default" : "outline"} onClick={handleLike}>
+          ❤️ Like ({post.likes ?? 0})
+        </Button>
 
         <Link
           to={`/post/${post.id}`}

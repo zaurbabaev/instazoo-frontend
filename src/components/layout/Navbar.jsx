@@ -2,6 +2,7 @@ import { Link, NavLink, useNavigate } from "react-router-dom";
 import { useDispatch, useSelector } from "react-redux";
 import { logout } from "../../features/auth/authSlice";
 import { toggleTheme } from "../../features/theme/themeSlice";
+import Button from "../ui/Button";
 
 const navClass = ({ isActive }) =>
   `px-3 py-2 rounded-xl text-sm font-medium transition ${
@@ -14,7 +15,6 @@ export default function Navbar() {
   const dispatch = useDispatch();
   const navigate = useNavigate();
   const mode = useSelector((s) => s.theme.mode);
-  const me = useSelector((s) => s.auth.user); // ✅ əlavə et
 
   return (
     <header className="sticky top-0 z-10 border-b border-slate-200/70 dark:border-slate-800 bg-white/80 dark:bg-slate-950/70 backdrop-blur">
@@ -27,40 +27,31 @@ export default function Navbar() {
           <NavLink to="/" className={navClass}>
             Feed
           </NavLink>
-
-          {/* ✅ My Profile */}
-          {/* {me?.id && (
-            <NavLink to={`/profile/${me.id}`} className={navClass}>
-              Profile
-            </NavLink>
-          )} */}
-          <NavLink to="/profile" className={navClass}>
-            Profile
-          </NavLink>
-
           <NavLink to="/create" className={navClass}>
             Create
           </NavLink>
-
+          <NavLink to="/profile" className={navClass}>
+            Profile
+          </NavLink>
           <NavLink to="/settings" className={navClass}>
             Settings
           </NavLink>
 
-          <button
+          <Button
+            variant="outline"
             onClick={() => dispatch(toggleTheme())}
-            className="px-3 py-2 text-sm border rounded-xl border-slate-200 dark:border-slate-800 hover:bg-slate-50 dark:hover:bg-slate-900/40"
             title="Toggle theme">
             {mode === "dark" ? "🌙" : "☀️"}
-          </button>
+          </Button>
 
-          <button
+          <Button
+            variant="danger"
             onClick={() => {
               dispatch(logout());
               navigate("/login");
-            }}
-            className="px-3 py-2 text-sm text-white rounded-xl bg-rose-600 hover:bg-rose-500">
+            }}>
             Logout
-          </button>
+          </Button>
         </nav>
       </div>
     </header>

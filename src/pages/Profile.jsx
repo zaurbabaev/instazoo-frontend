@@ -9,6 +9,7 @@ import PostCard from "../components/PostCard";
 import ProfileImage from "../components/ProfileImage";
 import EditProfileModal from "../components/EditProfileModal";
 import AvatarUploader from "../components/AvatarUploader";
+import Button from "../components/ui/Button";
 
 export default function Profile() {
   const dispatch = useDispatch();
@@ -87,11 +88,9 @@ export default function Profile() {
         </div>
 
         {isMyProfile && (
-          <button
-            onClick={() => setEditOpen(true)}
-            className="px-4 py-2 text-sm font-semibold border rounded-xl border-slate-200 dark:border-slate-800 hover:bg-slate-50 dark:hover:bg-slate-800/40">
+          <Button variant="outline" onClick={() => setEditOpen(true)}>
             Edit Profile
-          </button>
+          </Button>
         )}
       </div>
 
@@ -162,9 +161,10 @@ export default function Profile() {
 
       {editOpen && user && (
         <EditProfileModal
+          open={editOpen}
           user={user}
           onClose={() => setEditOpen(false)}
-          onUpdated={(u) => setUser(u)}
+          onSaved={(u) => setUser(u)}
         />
       )}
     </div>
