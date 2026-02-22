@@ -26,9 +26,10 @@ export default function PostCard({ post }) {
           <div className="font-semibold">{post.title || "Untitled"}</div>
           <div className="text-sm text-slate-500">
             by{" "}
-            <Link className="underline" to={`/profile/${post.username}`}>
+            {/* <Link className="underline" to={`/profile/${post.username}`}>
               {post.username}
-            </Link>
+            </Link> */}
+            <span className="underline decoration-dotted">{post.username}</span>
             {post.location ? ` • ${post.location}` : ""}
           </div>
         </div>

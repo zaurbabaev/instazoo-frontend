@@ -12,4 +12,22 @@ api.interceptors.request.use((config) => {
   return config;
 });
 
+api.interceptors.response.use(
+  (res) => res,
+  (error) => {
+    const status = error?.response?.status;
+
+    // JWT expired / unauthorized
+    if (status === 401 || status === 403) {
+      store.dispatch(logout());
+
+      // redirect (hard redirect daha stabil)
+      if (window.location.pathname !== "/login") {
+        window.location.href = "/login";
+      }
+    }
+
+    return Promise.reject(error);
+  },
+);
 export default api;

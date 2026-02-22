@@ -14,6 +14,7 @@ export default function Navbar() {
   const dispatch = useDispatch();
   const navigate = useNavigate();
   const mode = useSelector((s) => s.theme.mode);
+  const me = useSelector((s) => s.auth.user); // ✅ əlavə et
 
   return (
     <header className="sticky top-0 z-10 border-b border-slate-200/70 dark:border-slate-800 bg-white/80 dark:bg-slate-950/70 backdrop-blur">
@@ -26,9 +27,18 @@ export default function Navbar() {
           <NavLink to="/" className={navClass}>
             Feed
           </NavLink>
+
+          {/* ✅ My Profile */}
+          {me?.id && (
+            <NavLink to={`/profile/${me.id}`} className={navClass}>
+              Profile
+            </NavLink>
+          )}
+
           <NavLink to="/create" className={navClass}>
             Create
           </NavLink>
+
           <NavLink to="/settings" className={navClass}>
             Settings
           </NavLink>
