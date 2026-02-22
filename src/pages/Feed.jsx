@@ -3,6 +3,7 @@ import { useDispatch, useSelector } from "react-redux";
 import { fetchPostsThunk } from "../features/posts/postsSlice";
 import PostCard from "../components/PostCard";
 import { meThunk } from "../features/auth/authSlice";
+import PostCardSkeleton from "../components/PostCardSkeleton";
 
 export default function Feed() {
   const dispatch = useDispatch();
@@ -31,11 +32,29 @@ export default function Feed() {
 
       {loading && <div className="text-sm text-slate-500">Loading...</div>}
 
-      {error && (
+      {error ?
         <div className="px-3 py-2 text-sm border rounded-xl border-rose-200 bg-rose-50 text-rose-700">
           {typeof error === "string" ? error : "Xəta oldu"}
         </div>
-      )}
+      : loading ?
+        <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
+          {Array.from({ length: 6 }).map((_, i) => (
+            <PostCardSkeleton key={i} />
+          ))}
+        </div>
+      : items.length === 0 ?
+        <div className="p-6 text-center bg-white border dark:bg-slate-900 border-slate-200 dark:border-slate-800 rounded-2xl">
+          <div className="text-lg font-bold">Hələ post yoxdur</div>
+          <div className="mt-1 text-sm text-slate-500">
+            İlk postu yaratmaq üçün “Create” bölməsinə keç.
+          </div>
+        </div>
+      : <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
+          {items.map((p) => (
+            <PostCard key={p.id} post={p} />
+          ))}
+        </div>
+      }
 
       <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
         {items.map((p) => (
