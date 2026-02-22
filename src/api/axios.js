@@ -1,7 +1,7 @@
 import axios from "axios";
 import { store } from "../app/store";
-import { logout, setToken } from "../features/auth/authSlice"; // <- öz slice path-ini düz yaz
-import { refreshTokenApi } from "./authApi"; // <- refresh endpoint
+import { logout, setToken } from "../features/auth/authSlice";
+import { refreshTokenApi } from "./authApi";
 
 const api = axios.create({
   baseURL: import.meta.env.VITE_API_BASE_URL || "http://localhost:8080",
@@ -9,7 +9,7 @@ const api = axios.create({
 });
 
 // ----- refresh queue (eyni anda çox request 401 alsa, 1 refresh) -----
-let isRefreshing = false; 
+let isRefreshing = false;
 let waitQueue = [];
 
 const resolveQueue = (err, token = null) => {
@@ -20,6 +20,7 @@ const resolveQueue = (err, token = null) => {
 // Request: access token header-a yaz
 api.interceptors.request.use((config) => {
   const token = store.getState().auth.token; // "Bearer ..."
+  console.log("TOKEN:", token);
   if (token) config.headers.Authorization = token;
   return config;
 });

@@ -1,6 +1,7 @@
 import { createAsyncThunk, createSlice } from "@reduxjs/toolkit";
 import { signin, signup, logoutApi } from "../../api/authApi";
 import { getCurrentUser } from "../../api/userApi";
+import { refreshTokenApi } from "../../api/authApi";
 
 export const registerThunk = createAsyncThunk(
   "auth/register",
@@ -52,6 +53,24 @@ export const logoutThunk = createAsyncThunk("auth/logout", async () => {
   }
 });
 
+export const bootstrapAuthThunk = createAsyncThunk(
+  "auth/bootstrap",
+  async (_, { dispatch, rejectWithValue }) => {
+    try {
+      const res = await refreshTokenApi();
+      const raw = res.data?.token;
+      if (!raw) throw new Error("No token in refresh response");
+
+      dispatch(setToken(raw)); // Bearer prefix burada düzəlir
+      await dispatch(meThunk());
+      return true;
+    } catch (e) {
+      dispatch(logout());
+      return rejectWithValue(e.response?.data || e.message);
+    }
+  },
+);
+
 const authSlice = createSlice({
   name: "auth",
   initialState: {
@@ -61,6 +80,7 @@ const authSlice = createSlice({
     loading: false,
     error: null,
     loadingMe: false,
+    booting: true,
   },
   reducers: {
     // refresh interceptor burdan istifadə edəcək
@@ -119,6 +139,17 @@ const authSlice = createSlice({
       s.error = null;
       s.loading = false;
       s.loadingMe = false;
+    });
+    b.addCase(bootstrapAuthThunk.pending, (s) => {
+      s.booting = true;
+    });
+
+    b.addCase(bootstrapAuthThunk.fulfilled, (s) => {
+      s.booting = false;
+    });
+
+    b.addCase(bootstrapAuthThunk.rejected, (s) => {
+      s.booting = false;
     });
   },
 });
