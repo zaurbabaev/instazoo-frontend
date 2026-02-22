@@ -10,6 +10,7 @@ export default function PostCard({ post }) {
   const canDelete = me?.username && me.username === post.username;
 
   const handleLike = () => {
+    console.log("Me", me);
     if (!me?.username) return;
     dispatch(likePostThunk({ postId: post.id, username: me.username }));
   };
@@ -18,6 +19,8 @@ export default function PostCard({ post }) {
     if (!confirm("Post silinsin?")) return;
     dispatch(deletePostThunk({ postId: post.id }));
   };
+
+  const liked = me?.username && (post.usersLiked || []).includes(me.username);
 
   return (
     <div className="p-4 bg-white border shadow-sm dark:bg-slate-900 border-slate-200 dark:border-slate-800 rounded-2xl">
@@ -56,8 +59,12 @@ export default function PostCard({ post }) {
       <div className="flex items-center justify-between mt-4">
         <button
           onClick={handleLike}
-          className="px-4 py-2 text-sm font-medium border rounded-xl border-slate-200 dark:border-slate-800 hover:bg-slate-50 dark:hover:bg-slate-800/50">
-          ❤️ Like ({post.likes ?? 0})
+          className={`px-4 py-2 text-sm font-medium border rounded-xl transition ${
+            liked ?
+              "bg-rose-50 border-rose-200 text-rose-700 dark:bg-rose-500/10 dark:border-rose-400/30"
+            : "border-slate-200 dark:border-slate-800 hover:bg-slate-50 dark:hover:bg-slate-800/50"
+          }`}>
+          {liked ? "❤️ Liked" : "🤍 Like"} ({post.likes ?? 0})
         </button>
 
         <Link

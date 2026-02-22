@@ -43,6 +43,7 @@ const postsSlice = createSlice({
     items: [],
     loading: false,
     error: null,
+    deletedBackup: {},
   },
   reducers: {},
   extraReducers: (b) => {
@@ -59,14 +60,70 @@ const postsSlice = createSlice({
       s.error = a.payload;
     });
 
+    b.addCase(likePostThunk.pending, (s, a) => {
+      const { postId, username } = a.meta.arg;
+
+      const p = s.items.find((x) => String(x.id) === String(postId));
+      if (!p) return;
+
+      const set = new Set(p.usersLiked || []);
+      if (set.has(username)) return; // artıq like edibsə, yenə artırma
+
+      set.add(username);
+      p.usersLiked = Array.from(set);
+      p.likes = (p.likes ?? 0) + 1;
+    });
     b.addCase(likePostThunk.fulfilled, (s, a) => {
       const updated = a.payload;
       const idx = s.items.findIndex((p) => p.id === updated.id);
       if (idx !== -1) s.items[idx] = updated;
     });
+    b.addCase(likePostThunk.rejected, (s, a) => {
+      const { postId, username } = a.meta.arg;
+
+      const p = s.items.find((x) => String(x.id) === String(postId));
+      if (!p) return;
+
+      const set = new Set(p.usersLiked || []);
+      if (!set.has(username)) return;
+
+      set.delete(username);
+      p.usersLiked = Array.from(set);
+      p.likes = Math.max(0, (p.likes ?? 0) - 1);
+
+      // optional: error göstərmək üçün
+      s.error = a.payload;
+    });
+
+    b.addCase(deletePostThunk.pending, (s, a) => {
+      const { postId } = a.meta.arg;
+
+      const idx = s.items.findIndex((p) => String(p.id) === String(postId));
+      if (idx === -1) return;
+
+      // rollback üçün saxla
+      s.deletedBackup[postId] = s.items[idx];
+
+      // optimistic: UI-dən sil
+      s.items.splice(idx, 1);
+    });
 
     b.addCase(deletePostThunk.fulfilled, (s, a) => {
-      s.items = s.items.filter((p) => p.id !== a.payload.postId);
+      const { postId } = a.payload;
+      delete s.deletedBackup[postId];
+    });
+
+    b.addCase(deletePostThunk.rejected, (s, a) => {
+      const { postId } = a.meta.arg;
+
+      // rollback: geri qaytar
+      const saved = s.deletedBackup[postId];
+      if (saved) {
+        s.items.unshift(saved);
+        delete s.deletedBackup[postId];
+      }
+
+      s.error = a.payload;
     });
   },
 });
