@@ -2,6 +2,7 @@ import { Link } from "react-router-dom";
 import { useDispatch, useSelector } from "react-redux";
 import { likePostThunk, deletePostThunk } from "../features/posts/postsSlice";
 import PostImage from "./PostImage";
+import { pushToast } from "../features/toast/toastSlice";
 
 export default function PostCard({ post }) {
   const dispatch = useDispatch();
@@ -9,15 +10,20 @@ export default function PostCard({ post }) {
 
   const canDelete = me?.username && me.username === post.username;
 
-  const handleLike = () => {
+  const handleLike = async () => {
     console.log("Me", me);
     if (!me?.username) return;
-    dispatch(likePostThunk({ postId: post.id, username: me.username }));
+    await dispatch(likePostThunk({ postId: post.id, username: me.username }));
   };
 
-  const handleDelete = () => {
+  const handleDelete = async () => {
     if (!confirm("Post silinsin?")) return;
-    dispatch(deletePostThunk({ postId: post.id }));
+    try {
+      await dispatch(deletePostThunk({ postId: post.id })).unwrap();
+      dispatch(pushToast({ type: "success", message: "Post silindi ✅" }));
+    } catch (e) {
+      dispatch(pushToast({ type: "error", message: "Post silinmədi ❌" }));
+    }
   };
 
   const liked = me?.username && (post.usersLiked || []).includes(me.username);

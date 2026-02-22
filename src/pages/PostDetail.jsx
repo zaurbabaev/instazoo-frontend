@@ -1,7 +1,7 @@
 import { useEffect, useMemo, useState } from "react";
 import { Link, useParams } from "react-router-dom";
 import { useDispatch, useSelector } from "react-redux";
-
+import { pushToast } from "../features/toast/toastSlice";
 import { fetchPostsThunk, likePostThunk } from "../features/posts/postsSlice";
 import {
   getCommentsByPost,
@@ -96,13 +96,18 @@ export default function PostDetail() {
       await createComment(postId, { message: commentText.trim() });
       setCommentText("");
       await loadComments();
-    } catch (e2) {
-      setErr(
-        e2?.response?.data?.message ||
-          (typeof e2?.response?.data === "string" ? e2.response.data : null) ||
-          e2.message ||
-          "Comment göndərilmədi",
+      dispatch(
+        pushToast({ type: "success", message: "Comment əlavə olundu ✅" }),
       );
+    } catch (e2) {
+      const errMsg =
+        e2?.response?.data?.message ||
+        (typeof e2?.response?.data === "string" ? e2.response.data : null) ||
+        e2.message ||
+        "Comment göndərilmədi";
+
+      setErr(errMsg);
+      dispatch(pushToast({ type: "error", message: errMsg }));
     } finally {
       setSending(false);
     }
@@ -113,13 +118,16 @@ export default function PostDetail() {
     try {
       await deleteComment(commentId);
       await loadComments();
+      dispatch(pushToast({ type: "success", message: "Comment silindi ✅" }));
     } catch (e2) {
-      setErr(
+      const errMsg =
         e2?.response?.data?.message ||
-          (typeof e2?.response?.data === "string" ? e2.response.data : null) ||
-          e2.message ||
-          "Comment silinmədi",
-      );
+        (typeof e2?.response?.data === "string" ? e2.response.data : null) ||
+        e2.message ||
+        "Comment silinmədi";
+
+      setErr(errMsg);
+      dispatch(pushToast({ type: "error", message: errMsg }));
     }
   };
 
