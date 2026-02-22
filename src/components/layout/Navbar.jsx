@@ -29,11 +29,14 @@ export default function Navbar() {
           </NavLink>
 
           {/* ✅ My Profile */}
-          {me?.id && (
+          {/* {me?.id && (
             <NavLink to={`/profile/${me.id}`} className={navClass}>
               Profile
             </NavLink>
-          )}
+          )} */}
+          <NavLink to="/profile" className={navClass}>
+            Profile
+          </NavLink>
 
           <NavLink to="/create" className={navClass}>
             Create

@@ -1,27 +1,27 @@
 import { useEffect, useState } from "react";
-import { useParams } from "react-router-dom";
+import { useDispatch, useSelector } from "react-redux";
 
-import { getUserProfile } from "../api/userApi";
-import { getMyPosts } from "../api/postApi";
+import { getCurrentUser } from "../api/userApi";
+import { fetchMyPostsThunk } from "../features/posts/postsSlice";
 import PostCard from "../components/PostCard";
 import ProfileImage from "../components/ProfileImage";
 
 export default function Profile() {
-  const { userId } = useParams();
+  const dispatch = useDispatch();
+
+  const posts = useSelector((s) => s.posts.items);
+  const loadingPosts = useSelector((s) => s.posts.loading);
 
   const [user, setUser] = useState(null);
-  const [posts, setPosts] = useState([]);
   const [loadingUser, setLoadingUser] = useState(true);
-  const [loadingPosts, setLoadingPosts] = useState(true);
   const [err, setErr] = useState(null);
 
   useEffect(() => {
     let active = true;
     setErr(null);
 
-    // 1) user profile by ID
     setLoadingUser(true);
-    getUserProfile(userId)
+    getCurrentUser()
       .then((res) => {
         if (!active) return;
         setUser(res.data);
@@ -40,36 +40,19 @@ export default function Profile() {
         setLoadingUser(false);
       });
 
-    // 2) my posts (backend current user üçün verir)
-    // Qeyd: /api/posts/user/posts həmişə “current user” üçündür.
-    // Ona görə profil ID başqa user olsa da yenə current user postları gələcək.
-    // İndilik bu endpoint ilə “My Profile” ekranı kimi işlədəcəyik.
-    setLoadingPosts(true);
-    getMyPosts()
-      .then((res) => {
-        if (!active) return;
-        setPosts(Array.isArray(res.data) ? res.data : []);
-      })
-      .catch(() => {})
-      .finally(() => {
-        if (!active) return;
-        setLoadingPosts(false);
-      });
+    // ✅ postları Redux-a yüklə (like/delete də burada işləyəcək)
+    dispatch(fetchMyPostsThunk());
 
     return () => {
       active = false;
     };
-  }, [userId]);
+  }, [dispatch]);
 
   return (
     <div className="space-y-4">
-      <div className="flex items-end justify-between">
-        <div>
-          <h1 className="text-2xl font-bold">Profile</h1>
-          <p className="mt-1 text-sm text-slate-500">
-            User ID: <span className="font-semibold">{userId}</span>
-          </p>
-        </div>
+      <div>
+        <h1 className="text-2xl font-bold">My Profile</h1>
+        <p className="mt-1 text-sm text-slate-500">Current user məlumatları</p>
       </div>
 
       {err && (
@@ -110,23 +93,18 @@ export default function Profile() {
 
       <div>
         <h2 className="text-lg font-bold">My Posts</h2>
-        <p className="mt-1 text-sm text-slate-500">
-          (Backend endpoint-i current user üçün işləyir)
-        </p>
       </div>
 
       {loadingPosts ?
         <div className="text-sm text-slate-500">Loading posts...</div>
+      : posts.length === 0 ?
+        <div className="text-sm text-slate-500">Sənin postun yoxdur.</div>
       : <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
           {posts.map((p) => (
             <PostCard key={p.id} post={p} />
           ))}
         </div>
       }
-
-      {!loadingPosts && posts.length === 0 && (
-        <div className="text-sm text-slate-500">Sənin postun yoxdur.</div>
-      )}
     </div>
   );
 }

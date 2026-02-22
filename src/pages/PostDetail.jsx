@@ -170,8 +170,12 @@ export default function PostDetail() {
             </div>
 
             <div className="text-sm text-slate-500">
-              by <span className="font-semibold">{post?.username || "-"}</span>
-              {post?.location ? ` • ${post.location}` : ""}
+              by{" "}
+              <Link
+                className="font-semibold underline decoration-dotted"
+                to={`/profile/${post?.username}`}>
+                {post?.username || "-"}
+              </Link>
             </div>
 
             {post?.caption && (

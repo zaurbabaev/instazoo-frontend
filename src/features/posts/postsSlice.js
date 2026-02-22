@@ -1,11 +1,28 @@
 import { createAsyncThunk, createSlice } from "@reduxjs/toolkit";
-import { getAllPosts, likePost, deletePost } from "../../api/postApi";
+import {
+  getAllPosts,
+  likePost,
+  deletePost,
+  getMyPosts,
+} from "../../api/postApi";
 
 export const fetchPostsThunk = createAsyncThunk(
   "posts/fetchAll",
   async (_, { rejectWithValue }) => {
     try {
       const res = await getAllPosts();
+      return res.data;
+    } catch (e) {
+      return rejectWithValue(e.response?.data || e.message);
+    }
+  },
+);
+
+export const fetchMyPostsThunk = createAsyncThunk(
+  "posts/fetchMine",
+  async (_, { rejectWithValue }) => {
+    try {
+      const res = await getMyPosts();
       return res.data;
     } catch (e) {
       return rejectWithValue(e.response?.data || e.message);
@@ -59,7 +76,18 @@ const postsSlice = createSlice({
       s.loading = false;
       s.error = a.payload;
     });
-
+    b.addCase(fetchMyPostsThunk.pending, (s) => {
+      s.loading = true;
+      s.error = null;
+    });
+    b.addCase(fetchMyPostsThunk.fulfilled, (s, a) => {
+      s.loading = false;
+      s.items = Array.isArray(a.payload) ? a.payload : [];
+    });
+    b.addCase(fetchMyPostsThunk.rejected, (s, a) => {
+      s.loading = false;
+      s.error = a.payload;
+    });
     b.addCase(likePostThunk.pending, (s, a) => {
       const { postId, username } = a.meta.arg;
 

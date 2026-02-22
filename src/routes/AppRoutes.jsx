@@ -25,7 +25,7 @@ export default function AppRoutes() {
           </ProtectedRoute>
         }>
         <Route index element={<Feed />} />
-        <Route path="profile/:userId" element={<Profile />} />
+        <Route path="profile" element={<Profile />} />
         <Route path="create" element={<CreatePost />} />
         <Route path="settings" element={<Settings />} />
         <Route path="post/:id" element={<PostDetail />} />
