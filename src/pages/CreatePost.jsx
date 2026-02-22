@@ -5,6 +5,7 @@ import { useNavigate } from "react-router-dom";
 import { createPost } from "../api/postApi";
 import { uploadPostImage } from "../api/imageApi";
 import { fetchPostsThunk } from "../features/posts/postsSlice";
+import { pushToast } from "../features/toast/toastSlice";
 
 export default function CreatePost() {
   const dispatch = useDispatch();
@@ -53,18 +54,21 @@ export default function CreatePost() {
     setErr(null);
 
     if (!form.title.trim()) {
-      setErr("Title boş ola bilməz.");
+      const msg = "Title boş ola bilməz.";
+      setErr(msg);
+      dispatch(pushToast({ type: "error", message: msg }));
       return;
     }
     if (!file) {
-      setErr("Post üçün şəkil seçməlisən.");
+      const msg = "Post üçün şəkil seçməlisən.";
+      setErr(msg);
+      dispatch(pushToast({ type: "error", message: msg }));
       return;
     }
 
     setLoading(true);
 
     try {
-      // 1) create post
       const payload = {
         title: form.title.trim(),
         caption: form.caption.trim(),
@@ -73,27 +77,23 @@ export default function CreatePost() {
 
       const createRes = await createPost(payload);
 
-      // Backend bəzən { id: ... } qaytarır, bəzən birbaşa PostDTO, bəzən object.
       const postId =
         createRes.data?.id ??
         createRes.data?.postId ??
         createRes.data?.data?.id;
 
       if (!postId) {
-        // əgər backend create post response formatı fərqlidirsə, bunu konsolda görək
         console.log("createPost response:", createRes.data);
         throw new Error(
           "Post yaradıldı, amma postId tapılmadı (response formatı fərqli ola bilər).",
         );
       }
 
-      // 2) upload image
       await uploadPostImage(postId, file);
 
-      // 3) refresh feed
       await dispatch(fetchPostsThunk());
 
-      // 4) go home
+      dispatch(pushToast({ type: "success", message: "Post paylaşıldı ✅" }));
       navigate("/");
     } catch (e2) {
       const msg =
@@ -101,7 +101,9 @@ export default function CreatePost() {
         (typeof e2?.response?.data === "string" ? e2.response.data : null) ||
         e2.message ||
         "Xəta baş verdi";
+
       setErr(msg);
+      dispatch(pushToast({ type: "error", message: msg }));
     } finally {
       setLoading(false);
     }
